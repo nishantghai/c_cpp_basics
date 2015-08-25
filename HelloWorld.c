@@ -5,8 +5,18 @@ Author : Nishant Ghai
 
 #include <stdio.h>
 
-int main()
+int main(int argc, char* argv[] )
 {
-    printf("Hello,World!\n");
+    if( argc > 1)
+    {
+        printf("Hello, %s!\n",argv[1]);
+    }
+    else
+    {
+        printf("Hello, world!");
+    }
+    
     return 0;
 }
+
+//end of file
