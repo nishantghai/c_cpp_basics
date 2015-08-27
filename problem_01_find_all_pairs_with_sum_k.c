@@ -4,6 +4,7 @@ author : Nishant Ghai
 Problem :  Given a sorted array of numbers, print all pairs of numbers that have sum a given value 'k'
 
 Solution: Here, we iterate through the array, check for remainder pair in rest of the array using binary search
+The runtime complexity of this solution is O(nlogn)
 
 */
 
