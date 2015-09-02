@@ -27,7 +27,7 @@ Node* getNewNode( int data )
     return temp;
 }
 
-int find_node( Node* root, int data )
+int nodeExists( Node* root, int data )
 {
     if( root == NULL )
     {
@@ -42,12 +42,12 @@ int find_node( Node* root, int data )
     else if( data < root->data )
     {
         //look in the left sub-tree
-        return find_node( root->left, data );
+        return nodeExists( root->left, data );
     }
     else 
     {
         //look in the right sub-tree
-        return find_node( root->right, data );
+        return nodeExists( root->right, data );
     }
 }
 
@@ -158,6 +158,81 @@ void delete_node( Node** ptrRoot , int data )
     }
 }
 
+int isEveryNodeLess( Node* root, int data )
+{
+    if( root == NULL )
+    {
+        return 1;
+    }
+    else
+    {
+        if(     (data > root->data ) && 
+                isEveryNodeLess( root->left , data ) &&
+                isEveryNodeLess( root->right , data )
+            )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+int isEveryNodeGreater( Node* root, int data )
+{
+    if( root == NULL )
+    {
+        return 1;
+    }
+    else
+    {
+        if(     (data < root->data ) && 
+                isEveryNodeGreater( root->left , data ) &&
+                isEveryNodeGreater( root->right , data )
+            )
+        {
+            return 1;
+        }
+        else
+        {
+            printf("\nErorr! : Given tree is not a binary search tree\n");
+            printf("\nCurrent node data = %d\n",root->data);
+            return 0;
+        }
+    }
+}
+
+
+
+int isBinaryTreeBST( Node* root )
+{
+    if( root == NULL )
+    {
+        return 1;
+    }
+    else
+    {
+        if(  isBinaryTreeBST( root->left)  &&
+             isBinaryTreeBST( root->right) &&
+             isEveryNodeLess( root->left , root->data ) &&
+             isEveryNodeGreater( root->right , root->data )
+          )
+        {
+            return 1;
+        }
+        else
+        {
+            printf("\nErorr! : Given tree is not a binary search tree\n");
+            printf("\nCurrent node data = %d\n",root->data);
+            return 0;
+        }
+
+    }
+}
+
+
 void inorder_traversal( Node* root )
 {
     if( root == NULL )
@@ -170,10 +245,82 @@ void inorder_traversal( Node* root )
     inorder_traversal( root->right );
 }
 
+Node* findNode( Node* root, int data )
+{
+    if( root == NULL )
+    {
+        return NULL;
+    }
+    
+    if ( data == root->data )
+    {
+        return root;
+    }
+    else if( data < root->data )
+    {
+        return findNode( root->left, data );
+    }
+    else
+    {
+        return findNode( root->right, data );
+    }
+}
+
+
+Node* getInorderSuccessor( Node* root, int data )
+{
+    if( root == NULL )
+    {
+        return NULL;
+    }
+    else
+    {
+        /*find the node in the binary search tree which has node with "data"*/
+        Node* curr_node = findNode( root, data );
+
+        if( curr_node->right != NULL )
+        {
+            /*
+            case 1: if a node has right subtree, then in-order successor is the left most ( minimum ) node in its right subtree
+            */
+            Node* temp = curr_node->right;
+            while( temp->left != NULL )
+            {
+                temp = temp->left;
+            }
+            return temp;
+        }
+        else
+        {
+        /*
+        case 2: if a node has no right subtree, then to find in-order successor, start from root, 
+        Travel down the tree, if a node’s data is greater than root’s data then go right side, otherwise go to left side.
+        */
+
+            Node* ancestor = root;
+            Node* successor = NULL;
+            
+            while( ancestor != curr_node )
+            {
+                if( curr_node->data < ancestor->data )
+                {
+                    successor = ancestor;
+                    ancestor = ancestor->left;
+                }
+                else
+                {
+                    ancestor = ancestor->right;
+                }
+            }
+            return successor;
+        }
+    }
+}
+
 int main()
 {
     int temp_data = 0 , result = 0;
-    Node* root = NULL;
+    Node* root = NULL , *tempNode = NULL;;
 
     add_node( &root, 12 );
     add_node( &root, 10 );
@@ -193,17 +340,35 @@ int main()
     printf("\nThe in-order traversal of this tree is:\n");
     inorder_traversal( root );
 
+    if(  isBinaryTreeBST(root) == 1 )
+    {
+        printf("\nThe given tree is a binary search tree.\n");
+    }
+    else
+    {
+        printf("\nThe given tree is not a binary search tree.\n");
+    }
 
     temp_data = 10;
     printf("\n\nNow deleting %d from this tree.",temp_data);
     delete_node( &root, temp_data );
+
+
+    if(  isBinaryTreeBST(root) == 1 )
+    {
+        printf("\nThe given tree is a binary search tree.\n");
+    }
+    else
+    {
+        printf("\nThe given tree is not a binary search tree.\n");
+    }
 
     printf("\n\nThe in-order traversal of this tree is:\n");
     inorder_traversal( root );
 
 
     temp_data = 30;
-    result = find_node( root, temp_data );
+    result = nodeExists( root, temp_data );
     if( result == 0 )
     {
         printf("\n\n%d is NOT found in the given binary search tree.\n",temp_data);
@@ -212,6 +377,20 @@ int main()
     {
         printf("\n\n%d is found in the given binary search tree.\n",temp_data);
     }
+
+
+    temp_data = 16;
+    tempNode = getInorderSuccessor( root, temp_data);
+    if( tempNode != NULL )
+    {
+        printf("\n\nIn-order successor of %d is %d.",temp_data , tempNode->data);
+    }
+    else
+    {
+        printf("\n\nThere is no in-order successor of node with data %d.",temp_data);
+    }
+
+
 
     printf("\n\n");
     return 0;
