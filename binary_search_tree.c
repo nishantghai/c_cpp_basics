@@ -317,9 +317,163 @@ Node* getInorderSuccessor( Node* root, int data )
     }
 }
 
+/*
+ The main idea of the solution is, while traversing from top to bottom, 
+ the first node n we encounter with value between n1 and n2, i.e., n1 < n < n2 
+ or same as one of the n1 or n2, is LCA of n1 and n2 (assuming that n1 < n2)
+*/
+Node* getLCABST( Node* root, int data1 , int data2)
+{
+    if( root == NULL )
+    {
+        return NULL;
+    }
+
+    //if root->data is greater than both data1 and data2
+    //look for LCA in the left subtree
+    if( (root->data > data1)  && (root->data  > data2 ) )
+    {
+        return getLCABST( root->left , data1 , data2 );
+    }
+
+    //if root->data is smaller than both data1 and data2
+    //look for LCA in the right subtree
+    if( (root->data < data1) && (root->data < data2 ) )
+    {
+        return getLCABST( root->right, data1, data2);
+    }
+
+    return root; //this is the case when root->data lies in between data1 and data2
+}
+
+
+Node* getLowestCommonAncestor( Node* root, int data1 , int data2)
+{
+    Node* node1 = NULL, *node2 = NULL;
+
+    if( data1 > data2 )
+    {
+        //swap data1 and data2
+        int temp = data1;
+        data1 = data2;
+        data2 = temp;
+    }
+
+    //check if data1 is present in the binary search tree
+    node1 = findNode( root, data1 );
+    if( node1 == NULL )
+    {
+        printf("\n\nThere is no node in the BST with data %d", data1);
+        return NULL;
+    }
+
+    //check if data2 is present in the binary search tree
+    node2 = findNode( root, data2 );
+    if( node2 == NULL )
+    {
+        printf("\n\nThere is no node in the BST with data %d", data2);
+        return NULL;
+    }
+
+    //now call recursive function getLCA()
+    return getLCABST( root, data1, data2 );
+}
+
+/*
+floor(x) ==> largest integer not greater than x
+*/
+Node* floorInBST( Node* root, int x )
+{
+    if( root == NULL )
+    {
+        return NULL;
+    }
+
+
+    if( root->data > x )
+    {
+        //look for node from BST which is smaller than x in the left subtree
+        return floorInBST( root->left , x );
+    }
+    else if( root->data < x )
+    {
+        // either current root is floor value or there is some value larger value than it which is still smaller than x
+
+        //look for larger value in the right subtree
+        Node* temp = floorInBST( root->right , x );
+        if( temp != NULL )
+        {
+            if ( temp->data  > root->data  )
+            {
+                return temp;
+            }
+            else
+            {
+                return root;
+            }
+        }
+        else
+        {
+            return root;
+        }
+    }
+    else // root->data == x
+    {
+        return root;
+    }
+}
+
+/*
+ceiling(x) ==> smallest integer not less than x
+*/
+Node* ceilingInBST( Node* root, int x )
+{
+    if( root == NULL )
+    {
+        return NULL;
+    }
+
+    if( root->data < x )
+    {
+        //look for ceiling value in the right subtree
+        return ceilingInBST( root->right , x);
+    }
+    else if( root->data > x )
+    {
+        //current root value is greater than x
+        //either the current root is the ceiling or there is some value smaller than it which is still larger than x
+        //look for it left subtree
+        Node* temp = ceilingInBST( root->left , x );
+        
+        if( temp != NULL )
+        {
+            if( temp->data < root->data )
+            {
+                return temp;
+            }
+            else
+            {
+                return root;
+            }
+        }
+        else
+        {
+            return root;
+        }
+    }
+    else
+    {
+        return root;
+    }
+
+}
+
+
+
+
 int main()
 {
-    int temp_data = 0 , result = 0;
+    int temp_data = 0 , result = 0 ,  data1 =0, data2 = 0;
     Node* root = NULL , *tempNode = NULL;;
 
     add_node( &root, 12 );
@@ -349,9 +503,9 @@ int main()
         printf("\nThe given tree is not a binary search tree.\n");
     }
 
-    temp_data = 10;
-    printf("\n\nNow deleting %d from this tree.",temp_data);
-    delete_node( &root, temp_data );
+    //temp_data = 10;
+    //printf("\n\nNow deleting %d from this tree.",temp_data);
+    //delete_node( &root, temp_data );
 
 
     if(  isBinaryTreeBST(root) == 1 )
@@ -391,6 +545,41 @@ int main()
     }
 
 
+    //find lowest common ancestor
+    data1 = 4;
+    data2 = 7;
+    tempNode = getLowestCommonAncestor( root, data1, data2 );
+    if( tempNode == NULL )
+    {
+        printf("\n\nThere is no lowest common ancestor for %d and %d in the given BST.",data1, data2);
+    }
+    else
+    {
+        printf("\n\nThe lowest common ancestor for %d and %d in the given BST is %d.",data1, data2, tempNode->data);
+    }
+
+    temp_data = 17;
+    tempNode = ceilingInBST( root, temp_data );
+    if( tempNode != NULL )
+    {
+        printf("\n\nCeiling value for %d from given BST is %d", temp_data , tempNode->data );
+    }
+    else
+    {
+        printf("\n\nThere is no ceiling value for %d in given BST.",temp_data);
+    }
+
+
+    temp_data = 26;
+    tempNode = floorInBST( root, temp_data );
+    if( tempNode != NULL )
+    {
+        printf("\n\nFloor value for %d from given BST is %d", temp_data , tempNode->data );
+    }
+    else
+    {
+        printf("\n\nThere is no floor value for %d in given BST.",temp_data);
+    }
 
     printf("\n\n");
     return 0;
